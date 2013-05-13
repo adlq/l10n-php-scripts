@@ -6,7 +6,6 @@ class XliffFilter
 	private $fullStack;
 	private $verificationStack;
 	private $translationUnits;
-	private $layoutTags = array('html', 'head', 'meta', 'body', 'p', 'table', 'tr', 'td', 'ul', 'li');
 	
 	// Main regex, matches html tags and placeholders
 	private $regex = "/<[^>]+>|{\w+}|%\w+%?/";
@@ -82,20 +81,23 @@ class XliffFilter
 	}
 	
 	/**
-	 *	Given an HTML tag in raw text, returns the 
-	 *	tag name.
+	 * Return the name for an escaped element, given the element in raw text.
+	 * Examples: 
+	 * '<html>'=>'html', 
+	 * '{placeholder}'=>'placeholder' 
+	 * '%1'=>'1'
 	 *
-	 *	@param	$tag	the tag name
-	 *	@return			the HTML tag in raw text
+	 * @param string $element The element to be escaped in raw format
+	 * @return string The element name
 	 */
-	private function getTagName($tag) 
+	public function extractElementName($element) 
 	{
-
 		$matches = array();
+		$regex = '//';
 		
 		// The input can be either an HTML tag, or a placeholder (which can be surrounded by percent signs or curly brackets)
 		// We use different regexes according to the input tag type
-		switch ($tag[0])
+		switch ($element[0])
 		{
 			case '<':
 				$regex = "/[^<>\/ ]+/";
@@ -109,7 +111,7 @@ class XliffFilter
 		}
 		
 		// Apply the matching
-		if (preg_match($regex, $tag, $matches)) 
+		if (preg_match($regex, $element, $matches)) 
 		{
 			return $matches[0];
 		}
@@ -129,7 +131,7 @@ class XliffFilter
 		$this->translationUnits = array();
 		
 		$this->segment($string);
-		$translationUnits = &$this->translationUnits;
+		$translationUnits = $this->translationUnits;
 		
 		$array = array();
 		
@@ -168,14 +170,14 @@ class XliffFilter
 		{
 			
 			// Retrieve the tag name, it can be an HTML tag or a simple placeholder
-			$tagName = $this->getTagName($match);
+			$tagName = $this->extractElementName($match);
 			
 			// If we successfully retrieved the HTML tag name, proceed
 			if (!is_null($tagName)) 
 			{
 				if (strpos($match, "/") == 1)  
 				{
-					// This happens to be an HTML closing tag
+					// This happens to be a closing HTML tag
 					// Use the verificationStack to check if there's a corresponding opening tag
 					// Update the verificationStack (pop all elements in between) at the same time
 					$searchResult = $this->findOpeningTag($tagName);
@@ -193,6 +195,8 @@ class XliffFilter
 					}
 					
 					// Push the closing HTML tag onto the stack, regardless of whether it is mal-formed or not
+					// If the closing tag's id is non-zero, then it will be assigned to 
+					// an <ept> xliff tag. Otherwise, it will be associated with a <ph> xliff tag
 					array_push($this->getFullStack(), array($tagName => $currentTagId));
 				} 
 				else 
@@ -214,7 +218,7 @@ class XliffFilter
 	 * We assign an id of 0 to opening tags that 
 	 * don't have a corresponding closing tag. 
 	 * This also applies to placeholders, since they 
-	 * don't have any closing tags anyways
+	 * don't have any closing tags anyways.
 	 */
 	public function processStacks()
 	{
@@ -229,73 +233,81 @@ class XliffFilter
 				// Retrieve the tag name
 				$tagName = key($tagArray);
 				if (!$this->findClosingTag($tagName, $tagArray[$tagName])) 
-				{
 					$tagArray[$tagName] = 0;
-				}
 			}
 		}
 	}
 	
 	/**
-	 *	Third pass
-	 *	Read the input string while shifting the full stack
-	 * 	and apply the appropriate xliff tags
+	 * Given a string as input, return the translation units with respect to 
+	 * layout-related HTML tags
+	 * @param string $string The string to segment
 	 */
-	public function addXliffTags($string)
-	{
-		
-	}
-	
 	public function segment($string)
 	{
 		$cut = false;
-		
-		if (preg_match($this->layoutTagsRegex, $string))
-		{
-			$cut = true;
-		}
-		
-		$marks = array();
 		$translatable = false;
+		
+		// If we encounter an escapable tag, then prepare to segment the string
+		if (preg_match($this->layoutTagsRegex, $string))
+			$cut = true;
 		
 		if ($cut)
 		{
-			// Cut then push to translation units
+			// Replace all the escapable tags with the pipe character '|'
 			$temp = trim((preg_replace($this->layoutTagsRegex, '|', $string)));
+			// Then split the string at every occurence of the pipe character
 			$array = explode('|', $temp);
 
+			// This array contains segments of translatable text.
+			// The keys are beginning positions of the translatable text,
+			// and the values are their lenght.
+			// For example: [[20] => 150] means that there is a translatable 
+			// text spaning 150 characters from the 20th position of the string.
 			$marks = array();
 			
 			$offset = 0;
 			
-			foreach ($array as $el)
+			// Loop over each split
+			foreach ($array as $split)
 			{
-				if (trim($el) !== '')
+				if (trim($split) !== '')
 				{
-					$temp = trim(preg_replace($this->getRegex(), '', $el));
+					// Delete all inline elements (HTML tags and placeholders)
+					$temp = trim(preg_replace($this->getRegex(), '', $split));
 					if ($temp !== '') 
 					{
-						$pos = strpos($string, $el, $offset);
-						$length = strlen($el);
+						$pos = strpos($string, $split, $offset);
+						$length = strlen($split);
 						array_push($marks, array($pos => $length));
 						$offset += $length;
 					}
 				}
 			}
 			
-			$st = 0;
+			$stringCursor = 0;
+			// Retrieve translatable and untranslatable units
 			foreach ($marks as $mark)
 			{
 				$pos = key($mark);
 				$length = $mark[$pos];
-				$formatting = substr($string, $st, $pos - $st);
+				
+				// Everything from the current position in the string to the next 
+				// key is untranslatable
+				$untranslatable = substr($string, $stringCursor, $pos - $stringCursor);
+				
+				// Retrieve the translatable unit
 				$translatable = substr($string, $pos, $length);
-				array_push($this->translationUnits, $formatting);
+				
+				array_push($this->translationUnits, $untranslatable);
 				array_push($this->translationUnits, $translatable);
-				$st = $pos + $length;
+				
+				$stringCursor = $pos + $length;
 			}
-			$formatting = substr($string, $st);
-			array_push($this->translationUnits, $formatting);
+			
+			// Retrieve the last untranslatable split
+			$untranslatable = substr($string, $stringCursor);
+			array_push($this->translationUnits, $untranslatable);
 		}
 		else
 		{
@@ -304,6 +316,11 @@ class XliffFilter
 		}
 	}
 	
+	/**
+	 * Format a string by inserting necessary Xliff tags
+	 * @param string $string The string to format
+	 * @return string The formatted string
+	 */
 	public function processString($string)
 	{
 		// Initalize ph counter
@@ -312,10 +329,10 @@ class XliffFilter
 		$offset = 0;
 		
 		$matches = array();
-		while (preg_match($this->getRegex(), $string, $matches, 0, $offset)) 
+		while (preg_match($this->getRegex(), $string, $matches, 0, $offset))
 		{
 			// Retrieve the tag name
-			$tagName = $this->getTagName($matches[0]);
+			$tagName = $this->extractElementName($matches[0]);
 			$pos = strpos(substr($string, $offset), $matches[0]);
 			
 			// If we successfully retrieved the tag name, proceed
@@ -459,7 +476,7 @@ class XliffFilter
 		
 		// Compute necessary padding due to the added tags
 		$htmlTagLength = strlen($htmlTag);
-		$padding = strlen($this->getOpeningXliffTag() . $this->getClosingXliffTag()) + $htmlTagLength;
+//		$padding = strlen($this->getOpeningXliffTag() . $this->getClosingXliffTag()) + $htmlTagLength;
 
 		// Insert the opening and closing XLIFF tags
 		$string = substr_replace($string, $this->getClosingXliffTag(), $pos + $offset + $htmlTagLength, 0);

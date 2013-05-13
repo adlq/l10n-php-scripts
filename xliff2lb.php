@@ -42,12 +42,8 @@ $writer->startElement('body');
 
 // Various Counters
 $totalStrings = 0;
-$notTranslatedStrings = array();
 $totalWordCount = 0;
 $notTranslatedWordCount = 0;
-
-// Initialize counters for paired inline elements and placeholders
-$currentTagId = 0;
 
 // Trans-unit counter
 $transUnitId = 0;
@@ -76,8 +72,6 @@ while ($reader->name == 'trans-unit')
 		// Retrieve the source string
 		$sourceStr = $node->childNodes->item($sourceChildIndex)->textContent;
 		
-		$start = microtime(true);
-		
 		echo "Source @ " . microtime(true) . "= \"$sourceStr\"\n";
 		
 		// Apply XLIFF format to the source string
@@ -92,7 +86,7 @@ while ($reader->name == 'trans-unit')
 		{
 			// Retrieve target string
 			$targetStr = $node->childNodes->item($targetChildIndex)->textContent;
-			
+		
 			// Apply XLIFF format to target string
 			$targetSegments = $xliffFilter->format($targetStr);
 					
@@ -100,19 +94,9 @@ while ($reader->name == 'trans-unit')
 			{
 				$approvedTranslation = true;
 			}
-			else
-			{
-				// Append the string id to the list of untranslated strings
-				if (!in_array($reader->getAttribute('id'), $notTranslatedStrings))
-					$notTranslatedStrings[] = $reader->getAttribute('id');
-			}
 
 		}
 		$destStrState = 'translated';
-		
-		$end = microtime(true);
-		$timeDiff = $end - $start;
-		echo "Took " . $timeDiff . " ms\n-------";
 		
 		$idSuffix = 1;
 		
@@ -126,7 +110,6 @@ while ($reader->name == 'trans-unit')
 			$transUnitId++;
 			$sourceStr = $unit;
 			$segmentWordCount = str_word_count($sourceStr);
-			// echo "Segment $id with $segmentWordCount words : \"$sourceStr\"\n";
 							
 			if (($id % 2 !== 0 && count($sourceSegments) > 1)
 				|| ($id === 0 && count($sourceSegments) === 1))
@@ -210,8 +193,7 @@ while ($reader->name == 'trans-unit')
 			}
 			
 			$idSuffix++;
-			// echo "effectiveWordCount = $effectiveWordCount TotalWords = $totalWordCount, not translated = $notTranslatedWordCount\n";
-			// echo "\n_____\n";
+
 		}
 
 		echo "\n______\n";
@@ -222,30 +204,8 @@ while ($reader->name == 'trans-unit')
 // Writes LionBridge Xliff file
 $writer->fullEndElement();
 $writer->endDocument();
-$output = $writer->outputMemory();
-$output = preg_replace("/&lt;(?=\/?(ph|ept|bpt))(.+?)&gt;/", "<$2>", $output); // This regex can be improved
+$output = preg_replace("/&lt;(?=\/?(ph|ept|bpt))(.+?)&gt;/", "<$2>", $writer->outputMemory()); // This regex can be improved
 file_put_contents($outputFileName, $output);
-
-// Prepare output
-$nbOfNotTranslatedStr = count($notTranslatedStrings);
-$notTranslatedStrings = implode(", ", $notTranslatedStrings);
-
-// Adapt the output with respect to the fifth argument
-if (empty($argv[5]))
-{
-	echo "================================================\n";
-	echo "Output of LionBridge Xliff file $outputFileName successful!\n";
-	echo "Total strings: $totalStrings\n";
-	echo "Nb of not translated strings: $nbOfNotTranslatedStr\n";
-	echo "Not translated strings: $notTranslatedStrings\n";
-	echo "Total word count (source): $totalWordCount\n";
-	echo "Not translated word count (source): $notTranslatedWordCount\n";
-}
-else
-{
-	// CSV output
-	echo "$outputFileName;$totalStrings;$nbOfNotTranslatedStr;$totalWordCount;$notTranslatedWordCount;\n";
-}
 
 $reader->close();
 
