@@ -9,7 +9,7 @@ class XliffFilter
 	
 	// Main regex, matches html tags and placeholders
 	private $regex = "/<[^>]+>|{\w+}|%\w+%?/";
-	private	$layoutTagsRegex = "/<\/?(html|head|meta|body|p|table|tr|td|ul|li)[^>]*>/";
+	private	$layoutTagsRegex = "/<\/?(html|head|meta|body|p|table|thead|tbody|tr|th|td|ul|ol|li|blockquote)[^>]*>/";
 	
 	public function __construct()
 	{
@@ -88,7 +88,7 @@ class XliffFilter
 	 * '%1'=>'1'
 	 *
 	 * @param string $element The element to be escaped in raw format
-	 * @return string The element name
+	 * @return string The element name if applicable and an empty string otherwise
 	 */
 	public function extractElementName($element) 
 	{
@@ -111,12 +111,10 @@ class XliffFilter
 		}
 		
 		// Apply the matching
-		if (preg_match($regex, $element, $matches)) 
-		{
+		if (preg_match($regex, $element, $matches))
 			return $matches[0];
-		}
 		
-		return null;
+		return '';
 	}
 
 
@@ -173,7 +171,7 @@ class XliffFilter
 			$tagName = $this->extractElementName($match);
 			
 			// If we successfully retrieved the HTML tag name, proceed
-			if (!is_null($tagName)) 
+			if ($tagName !== '') 
 			{
 				if (strpos($match, "/") == 1)  
 				{
@@ -277,11 +275,17 @@ class XliffFilter
 					$temp = trim(preg_replace($this->getRegex(), '', $split));
 					if ($temp !== '') 
 					{
+						echo "Calling strpos at offset $offset\n";
 						$pos = strpos($string, $split, $offset);
 						$length = strlen($split);
 						array_push($marks, array($pos => $length));
-						$offset += $length;
+						$offset = $pos + $length;
+						echo "Split that has translatable text: $split @ $pos spanning $length from total length " . strlen($string) . ". Moving offset to $offset\n";
 					}
+				}
+				else
+				{
+					echo "EMPTY\n";
 				}
 			}
 			
@@ -336,7 +340,7 @@ class XliffFilter
 			$pos = strpos(substr($string, $offset), $matches[0]);
 			
 			// If we successfully retrieved the tag name, proceed
-			if (!is_null($tagName)) 
+			if ($tagName != '') 
 			{
 				// Pop out the first full stack element to check with the string 
 				$stackTagArray = array_shift($this->getFullStack());
@@ -521,6 +525,15 @@ class XliffFilter
 			return null;
 		}
 		return null;
+	}
+	
+	/**
+	 * Retrieve the current translation units
+	 * @return array The curent translation units
+	 */
+	public function getTranslationUnits()
+	{
+		return $this->translationUnits;
 	}
 
 }

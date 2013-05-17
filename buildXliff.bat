@@ -25,15 +25,15 @@ if x%po:.po=%==x%po% (
 	)
 )
 
-REM msgattrib --no-obsolete --no-wrap --no-location !po! -o !output!clean.po
+msgattrib --no-obsolete --no-wrap --no-location !po! -o !output!clean.po
 
 REM Convert the 'clean' PO file to a generic xliff file
-po2xliff !po! raw.xlf
+po2xliff !output!clean.po raw.xlf
 
 REM Summon the PHP script that converts the resulting xliff file into LionBridge-compatible file
 php xliff2lb.php raw.xlf en-GB !output!.xlf !locale! csv >> buildXliffOutput.csv
 
 REM Delete temporary files
-del raw.xlf
+REM del raw.xlf
 
 endlocal

@@ -168,4 +168,5 @@ pip-log.txt
 *.xliff
 *.xlf
 *.log
+*.csv
 /nbproject/private/
