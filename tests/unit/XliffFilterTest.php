@@ -33,14 +33,66 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
 			<td>Lorem ipsum</td>
 		</tr>
 	</tbody>
-</table>', 5),
+</table>', array(
+  '<table>
+	<thead>
+		<tr>
+			<th>',
+  'Lorem <b>ipsum</b>',
+  '</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>',
+  'Lorem ipsum',
+  '</td>
+		</tr>
+	</tbody>
+</table>'), array('html')),
 			array('<ul>
    <li>Lorem ipsum dolor sit <a href="#">amet</a>, consectetuer adipiscing elit.</li>
    <li>Aliquam tincidunt mauris eu risus.</li>
    <li>Vestibulum auctor dapibus neque.</li>
-</ul>', 7),
+</ul>', array('<ul>
+   <li>',
+  'Lorem ipsum dolor sit <a href="#">amet</a>, consectetuer adipiscing elit.',
+  '</li>
+   <li>',
+  'Aliquam tincidunt mauris eu risus.',
+  '</li>
+   <li>',
+  'Vestibulum auctor dapibus neque.',
+  '</li>
+</ul>')),
 			array('<h1>HTML Ipsum Presents</h1>
-<p><strong>Pellentesque habitant morbi tristique</strong> senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. <em>Aenean ultricies mi vitae est.</em> Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, <code>commodo vitae</code>, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. <a href="#">Donec non enim</a> in turpis pulvinar facilisis. Ut felis.</p>', 5) );
+<p><strong>Pellentesque habitant morbi tristique</strong> senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. <em>Aenean ultricies mi vitae est.</em> Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, <code>commodo vitae</code>, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. <a href="#">Donec non enim</a> in turpis pulvinar facilisis. Ut felis.</p>',
+      array('<h1>HTML Ipsum Presents</h1>
+',
+        '<p>',
+        '<strong>Pellentesque habitant morbi tristique</strong> senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. <em>Aenean ultricies mi vitae est.</em> Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, <code>commodo vitae</code>, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. <a href="#">Donec non enim</a> in turpis pulvinar facilisis. Ut felis.',
+        '</p>')),
+      array('<html>
+ <head>
+  <title>Pellentesque habitant morbi tristique</title>
+  <meta name="Pellentesque" content="Aenean ultricies mi vitae est">
+ </head>
+<body>
+<p>Pellentesque habitant morbi tristique.</p>
+</body>
+</html>', array('<html>
+ <head>
+  <title>',
+  'Pellentesque habitant morbi tristique',
+  '</title>
+  <meta name="Pellentesque" content="Aenean ultricies mi vitae est">
+ </head>
+<body>
+<p>',
+  'Pellentesque habitant morbi tristique.',
+  '</p>
+</body>
+</html>')));
 	}
 	
 	/**
@@ -89,9 +141,92 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
 	public function testSegment($string, $segments)
 	{
 		$this->filter->segment($string);
-		print_r($this->filter->getTranslationUnits());
-		$this->assertEquals($segments, count($this->filter->getTranslationUnits()));
+		$this->assertEquals($segments, $this->filter->getTranslationUnits());
+    
+    return "test";
 	}
+  
+  /**
+   * @covers buildStacks
+   * @dataProvider provideTranslationUnits
+   */
+  public function testBuildStacks($tu, $fullStack, $verificationStack)
+  {
+    $this->filter->buildStacks($tu);
+    $this->assertEquals($fullStack, $this->filter->getFullStack());
+    $this->assertEquals($verificationStack, $this->filter->getVerificationStack());
+  }
+  
+  /**
+   * 
+   * @covers processStacks
+   * @depends testBuildStacks
+   * @dataProvider provideTranslationUnits
+   */
+  public function testProcessStacks($tu, $fullStack, $verificationStack, $processedFullStack)
+  {
+    $this->filter->buildStacks($tu);
+    $this->filter->processStacks($tu);
+    $this->assertEquals($processedFullStack, $this->filter->getFullStack());
+  }
+  
+  public function provideTranslationUnits()
+  {
+    return array(
+      array('<html><head></head><body><p><b>Test</b></p></body></html>', 
+        array(
+          array('html' => 1),
+          array('head' => 2),
+          array('head' => -2),
+          array('body' => 3),
+          array('p' => 4),
+          array('b' => 5),
+          array('b' => -5),
+          array('p' => -4),
+          array('body' => -3),
+          array('html' => -1)),
+        array(),
+        array(
+          array('html' => 1),
+          array('head' => 2),
+          array('head' => -2),
+          array('body' => 3),
+          array('p' => 4),
+          array('b' => 5),
+          array('b' => -5),
+          array('p' => -4),
+          array('body' => -3),
+          array('html' => -1))),
+      array('<p><b>Hello <a href="#">World</a></b></body>',
+        array(
+          array('p' => 1),
+          array('b' => 2),
+          array('a' => 3),
+          array('a' => -3),
+          array('b' => -2),
+          array('body' => 0)),
+        array(array('p' => 1)),
+        array(
+          array('p' => 0),
+          array('b' => 2),
+          array('a' => 3),
+          array('a' => -3),
+          array('b' => -2),
+          array('body' => 0))),
+      array('<p>Hello {adjective} %1 World</p>', 
+        array(
+          array('p' => 1),
+          array('adjective' => 2),
+          array('1' => 3), 
+          array('p' => -1)),
+        array(), 
+        array(
+          array('p' => 1),
+          array('adjective' => 0),
+          array('1' => 0),
+          array('p' => -1)))
+    );
+  }
 }
 
 ?>

@@ -9,7 +9,7 @@ class XliffFilter
 	
 	// Main regex, matches html tags and placeholders
 	private $regex = "/<[^>]+>|{\w+}|%\w+%?/";
-	private	$layoutTagsRegex = "/<\/?(html|head|meta|body|p|table|thead|tbody|tr|th|td|ul|ol|li|blockquote)[^>]*>/";
+	private	$layoutTagsRegex = "/<\/?(html|head|meta|title|body|p|table|thead|tbody|tr|th|td|ul|ol|li|blockquote)[^>]*>/";
 	
 	public function __construct()
 	{
@@ -27,12 +27,12 @@ class XliffFilter
 		return $this->regex;
 	}
 	
-	private function &getVerificationStack()
+	public function &getVerificationStack()
 	{
 		return $this->verificationStack;
 	}
 
-	private function &getFullStack()
+	public function &getFullStack()
 	{
 		return $this->fullStack;
 	}
@@ -275,17 +275,13 @@ class XliffFilter
 					$temp = trim(preg_replace($this->getRegex(), '', $split));
 					if ($temp !== '') 
 					{
-						echo "Calling strpos at offset $offset\n";
+//						echo "Calling strpos at offset $offset\n";
 						$pos = strpos($string, $split, $offset);
 						$length = strlen($split);
 						array_push($marks, array($pos => $length));
 						$offset = $pos + $length;
-						echo "Split that has translatable text: $split @ $pos spanning $length from total length " . strlen($string) . ". Moving offset to $offset\n";
+//						echo "Split that has translatable text: $split @ $pos spanning $length from total length " . strlen($string) . ". Moving offset to $offset\n";
 					}
-				}
-				else
-				{
-					echo "EMPTY\n";
 				}
 			}
 			
@@ -295,15 +291,20 @@ class XliffFilter
 			{
 				$pos = key($mark);
 				$length = $mark[$pos];
+//        echo "Pos $pos and length $length\n";
 				
 				// Everything from the current position in the string to the next 
 				// key is untranslatable
-				$untranslatable = substr($string, $stringCursor, $pos - $stringCursor);
-				
+        if ($pos !== $stringCursor)
+        {
+          $untranslatable = substr($string, $stringCursor, $pos - $stringCursor);
+          array_push($this->translationUnits, $untranslatable);
+        }
+        
 				// Retrieve the translatable unit
 				$translatable = substr($string, $pos, $length);
 				
-				array_push($this->translationUnits, $untranslatable);
+        //echo "Pushing '$untranslatable' and '$translatable'\n";
 				array_push($this->translationUnits, $translatable);
 				
 				$stringCursor = $pos + $length;
@@ -396,7 +397,7 @@ class XliffFilter
 	}
 
 	/**
-	 *	Pop elements from the tag stack until we get 
+	 *	Pop elements from the verification stack until we get 
 	 *	to the specified tag
 	 *
 	 *	@param	$tag 	the tag that we want
