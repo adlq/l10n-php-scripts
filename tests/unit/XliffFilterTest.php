@@ -19,7 +19,7 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
 		
 	}
 
-	public function provideStrings()
+	public function segmentProvider()
 	{
 		return array(
 			array('<table>
@@ -131,12 +131,17 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('placeholder', $this->filter->extractElementName('{placeholder}'));
 		$this->assertEquals('1', $this->filter->extractElementName('%1'));
 		$this->assertEquals('2', $this->filter->extractElementName('%2%'));
-		$this->assertEmpty($this->filter->extractElementName('Unrecognized Tag'));
+    
+		$this->assertEmpty($this->filter->extractElementName('Foo bar'));
+		$this->assertEmpty($this->filter->extractElementName('{foo'));
+		$this->assertEmpty($this->filter->extractElementName('bar}'));
+		$this->assertEmpty($this->filter->extractElementName('bar>'));
+		$this->assertEmpty($this->filter->extractElementName('<bar'));
 	}
 	
 	/**
 	 * @covers segment
-	 * @dataProvider provideStrings
+	 * @dataProvider segmentProvider
 	 */
 	public function testSegment($string, $segments)
 	{
@@ -169,7 +174,7 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
     $this->filter->processStacks($tu);
     $this->assertEquals($processedFullStack, $this->filter->getFullStack());
   }
-  
+
   public function provideTranslationUnits()
   {
     return array(
@@ -225,6 +230,38 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
           array('adjective' => 0),
           array('1' => 0),
           array('p' => -1)))
+    );
+  }
+  
+  /**
+   * #
+   * @dataProvider processStringProvider
+   */
+  public function testProcessString($raw, $segments, $stack, $formatted)
+  {
+    $this->filter->segment($raw);
+    $this->filter->setFullStack($stack);
+    
+		// Finally, apply the xliff tags to the string
+    $this->assertEquals($formatted, $this->filter->processString($raw));
+  }
+  
+  public function processStringProvider()
+  {
+    return array(
+      array(
+        '<p>Foo {bar} <b><a href="#">bar</a></b><p>',
+        array('<p>', 'Foo {bar} <b><a href="#">bar</a></b>', '</p>'),
+        array(
+          array('p' => 1),
+          array('bar' => 0),
+          array('b' => 2),
+          array('a' => 3),
+          array('a' => -3),
+          array('b' => -2),
+          array('p' => -1)
+        ),
+        '<bpt id="1"><p></bpt>Foo <ph id="1">{bar}</ph> <bpt id="2"><b></bpt><bpt id="3"><a href="#"></bpt>bar<ept id="3"></a></ept><ept id="2"></b></ept><ept id="1"><p></ept>')
     );
   }
 }

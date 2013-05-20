@@ -16,7 +16,7 @@ class XliffFilter
 		$this->initStacks();
 		$this->translationUnits = array();
 	}
-	private function initStacks()
+	public function initStacks()
 	{
 		$this->fullStack = array();
 		$this->verificationStack = array();
@@ -100,20 +100,20 @@ class XliffFilter
 		switch ($element[0])
 		{
 			case '<':
-				$regex = "/[^<>\/ ]+/";
+				$regex = "/<[\/]*([^\/<> ]+).*>/";
 				break;
 			case '{':
-				$regex = "/[^{} ]+/";
+				$regex = "/{([^{} ]+)}/";
 				break;	
 			case '%':
-				$regex = "/[^% ]+/";
+				$regex = "/([^% ]+)/";
 				break;
 		}
 		
 		// Apply the matching
-		if (preg_match($regex, $element, $matches))
-			return $matches[0];
-		
+		if (preg_match($regex, $element, $matches) && isset($matches[1]))
+			return $matches[1];
+    
 		return '';
 	}
 
@@ -536,6 +536,10 @@ class XliffFilter
 	{
 		return $this->translationUnits;
 	}
+  
+  public function setFullStack($fullStack) {
+    $this->fullStack = $fullStack;
+  }
 
 }
 ?>
