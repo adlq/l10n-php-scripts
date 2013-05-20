@@ -347,6 +347,7 @@ class XliffFilter
 				$stackTagArray = array_shift($this->getFullStack());
 				$stackTag = key($stackTagArray);
 				$stackTagId = $stackTagArray[$stackTag];
+        $phTagCounter = $this->getMaxTagId();
 				
 				if ($stackTagId == 0) 
 				{
@@ -434,6 +435,24 @@ class XliffFilter
 		}
 		return $tagId;
 	}
+  
+  /**
+   * Retrieve the highest tag id from the full stack
+   * @return int The highest tag id
+   */
+  public function getMaxTagId()
+  {
+    $stack = $this->getFullStack();
+    $max = 0;
+    
+    foreach($stack as $substack)
+    {
+      if ($substack[key($substack)] > $max)
+        $max = $substack[key($substack)];
+    }
+    
+    return $max;
+  }
 
 	/**
 	 *	Find the corresponding closing tag

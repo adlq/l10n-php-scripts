@@ -261,7 +261,7 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
           array('b' => -2),
           array('p' => -1)
         ),
-        '<bpt id="1"><p></bpt>Foo <ph id="1">{bar}</ph> <bpt id="2"><b></bpt><bpt id="3"><a href="#"></bpt>bar<ept id="3"></a></ept><ept id="2"></b></ept><ept id="1"><p></ept>')
+        '<bpt id="1"><p></bpt>Foo <ph id="4">{bar}</ph> <bpt id="2"><b></bpt><bpt id="3"><a href="#"></bpt>bar<ept id="3"></a></ept><ept id="2"></b></ept><ept id="1"><p></ept>')
     );
   }
 }
