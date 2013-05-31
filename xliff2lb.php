@@ -72,8 +72,6 @@ while ($reader->name == 'trans-unit')
 		// Retrieve the source string
 		$sourceStr = $node->childNodes->item($sourceChildIndex)->textContent;
 		
-		echo "Source @ " . microtime(true) . "= \"$sourceStr\"\n";
-		
 		// Apply XLIFF format to the source string
 		$sourceSegments = $xliffFilter->format($sourceStr);
 		
@@ -123,18 +121,26 @@ while ($reader->name == 'trans-unit')
 				$writer->writeAttribute('resname', 'CKLS' . $reader->getAttribute('id') . '_' . count($sourceSegments) . '_' . $idSuffix);
 				$writer->writeAttribute("xml:space", $reader->getAttribute('xml:space'));
 				$writer->writeAttribute('id', $transUnitId);
-				$writer->writeAttribute('translate', 'yes');
 			
 
 				// If the translation is not approved, the target string is the same as the source string
 				$targetStr = $sourceStr;
 				$destStrState = 'needs-translation';
+				$translatable = 'yes';
 				
 				if ($approvedTranslation)
 				{
 					// Pick the same segment amongst the target ones
-					$targetStr = $targetSegments[$id];
-					$destStrState = 'translated';
+					if (isset($targetSegments[$id]))
+					{
+						$targetStr = $targetSegments[$id];	
+						$destStrState = 'translated';	
+					}
+					else
+					{
+						$targetStr = '';
+						$translatable = 'no';
+					}
 				}
 				else
 				{
@@ -145,6 +151,7 @@ while ($reader->name == 'trans-unit')
 				// Update total word count
 				$totalWordCount += $effectiveWordCount;
 				
+				$writer->writeAttribute('translate', $translatable);
 				// Write the content of the source tag
 				// Add source to output
 				$writer->startElement('source');
@@ -153,11 +160,14 @@ while ($reader->name == 'trans-unit')
 				$writer->endElement();
 				
 				// Add target to output
-				$writer->startElement('target');
-				$writer->writeAttribute('xml:lang', $argv[4]);
-				$writer->writeAttribute('state', $destStrState);
-				$writer->writeRaw($targetStr);
-				$writer->endElement();
+				if ($translatable === 'yes')
+				{
+					$writer->startElement('target');
+					$writer->writeAttribute('xml:lang', $argv[4]);
+					$writer->writeAttribute('state', $destStrState);
+					$writer->writeRaw($targetStr);
+					$writer->endElement();
+				}
 				
 				// Copy developer's notes into <note> tags
 				$noteChildIndex = XliffFilter::getChildByName($node, "note");
@@ -196,7 +206,6 @@ while ($reader->name == 'trans-unit')
 
 		}
 
-		echo "\n______\n";
 		// Keep on reading!
 		$reader->next('trans-unit');		
 	}

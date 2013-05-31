@@ -25,15 +25,18 @@ if x%po:.po=%==x%po% (
 	)
 )
 
-msgattrib --no-obsolete --no-wrap --no-location !po! -o !output!clean.po
+msguniq --no-location --no-wrap --sort-output !po! -o !output!uniq.po
+
+msgattrib --no-obsolete --no-wrap --no-location --sort-output !output!uniq.po -o !output!clean.po
+REM msgattrib --no-obsolete --no-wrap --no-location --sort-output !po! -o !output!clean.po
 
 REM Convert the 'clean' PO file to a generic xliff file
-po2xliff !output!clean.po raw.xlf
+po2xliff !output!clean.po !output!raw.xlf
 
 REM Summon the PHP script that converts the resulting xliff file into LionBridge-compatible file
-php xliff2lb.php raw.xlf en-GB !output!.xlf !locale! csv >> buildXliffOutput.csv
+php xliff2lb.php !output!raw.xlf en-gb !output!.xlf !locale! csv >> buildXliffOutput.csv
 
 REM Delete temporary files
-REM del raw.xlf
+del !output!raw.xlf !output!uniq.po !output!clean.po 
 
 endlocal
