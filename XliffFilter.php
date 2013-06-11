@@ -100,7 +100,7 @@ class XliffFilter
 		switch ($element[0])
 		{
 			case '<':
-				$regex = "/<[\/]*([^\/<> ]+).*>/";
+				$regex = "/<[\/ ]*([^\/<> ]+).*>/";
 				break;
 			case '{':
 				$regex = "/{([^{} ]+)}/";

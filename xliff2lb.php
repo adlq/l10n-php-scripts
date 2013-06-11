@@ -87,7 +87,7 @@ while ($reader->name == 'trans-unit')
 		
 			// Apply XLIFF format to target string
 			$targetSegments = $xliffFilter->format($targetStr);
-					
+			
 			if($reader->getAttribute('approved') === 'yes')
 			{
 				$approvedTranslation = true;
@@ -108,7 +108,7 @@ while ($reader->name == 'trans-unit')
 			$transUnitId++;
 			$sourceStr = $unit;
 			$segmentWordCount = str_word_count($sourceStr);
-							
+			
 			if (($id % 2 !== 0 && count($sourceSegments) > 1)
 				|| ($id === 0 && count($sourceSegments) === 1))
 			{
@@ -205,7 +205,7 @@ while ($reader->name == 'trans-unit')
 			$idSuffix++;
 
 		}
-
+		
 		// Keep on reading!
 		$reader->next('trans-unit');		
 	}
