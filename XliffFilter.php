@@ -378,8 +378,6 @@ class XliffFilter
 
 			}
 		}
-
-		echo "\n-----\n";
 		return $string;
 	}
 

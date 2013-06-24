@@ -170,3 +170,5 @@ pip-log.txt
 *.log
 *.csv
 /nbproject/private/
+loreal/
+loreal.bat
