@@ -21,6 +21,9 @@ set fileName=%1
 REM Extract locale name
 set locale=%2
 
+REM Extract output file name 
+set output=%3
+
 if not x%fileName:.xlf=%==x%fileName% (
 	if exist !fileName! (
 		REM Summon the PHP script that converts the given xlf file into a regular one
@@ -29,10 +32,10 @@ if not x%fileName:.xlf=%==x%fileName% (
 		REM Convert the resulting xlf file to a PO file
 		xliff2po !locale!_temp.xlf !locale!.po
 		
-		msgmerge !locale!.po !locale!.po --no-location --no-wrap --sort-output -o !locale!.po
+		msgmerge !locale!.po !locale!.po --no-location --no-wrap --sort-output -o !output!
 		
 		REM Delete temporary files
-		del !locale!_temp.xlf
+		del !locale!_temp.xlf !locale!.po
 	)
 )
 
