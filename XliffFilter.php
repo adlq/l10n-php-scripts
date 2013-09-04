@@ -139,14 +139,14 @@ class XliffFilter
 			$this->initStacks();
 
 			// Build the stacks
-			$this->buildStacks($unit);
+			$this->buildStacks($unit['string']);
 
 			// Process them
 			$this->processStacks();
 
 			// Finally, apply the xliff tags to the string
-			$str = $this->processString($unit);
-			array_push($array, htmlspecialchars($str, ENT_NOQUOTES, 'UTF-8'));
+			$str = $this->processString($unit['string']);
+			array_push($array, array('string' => htmlspecialchars($str, ENT_NOQUOTES, 'UTF-8'), 'translatable' => $unit['translatable']));
 		}
 
 		return $array;
@@ -275,12 +275,12 @@ class XliffFilter
 					$temp = trim(preg_replace($this->getRegex(), '', $split));
 					if ($temp !== '')
 					{
-//						echo "Calling strpos at offset $offset\n";
+						//echo "Calling strpos at offset $offset\n";
 						$pos = strpos($string, $split, $offset);
 						$length = strlen($split);
 						array_push($marks, array($pos => $length));
 						$offset = $pos + $length;
-//						echo "Split that has translatable text: $split @ $pos spanning $length from total length " . strlen($string) . ". Moving offset to $offset\n";
+						//echo "Split that has translatable text: $split @ $pos spanning $length from total length " . strlen($string) . ". Moving offset to $offset\n";
 					}
 				}
 			}
@@ -297,12 +297,12 @@ class XliffFilter
 				// key is untranslatable
         if ($pos !== $stringCursor)
         {
-          $untranslatable = substr($string, $stringCursor, $pos - $stringCursor);
+          $untranslatable = array('string' => substr($string, $stringCursor, $pos - $stringCursor), 'translatable' => false);
           array_push($this->translationUnits, $untranslatable);
         }
 
 				// Retrieve the translatable unit
-				$translatable = substr($string, $pos, $length);
+				$translatable = array('string' => substr($string, $pos, $length), 'translatable' => true);
 
         //echo "Pushing '$untranslatable' and '$translatable'\n";
 				array_push($this->translationUnits, $translatable);
@@ -310,14 +310,17 @@ class XliffFilter
 				$stringCursor = $pos + $length;
 			}
 
-			// Retrieve the last untranslatable split
-			$untranslatable = substr($string, $stringCursor);
-			array_push($this->translationUnits, $untranslatable);
+			// Retrieve the last untranslatable split if there are any
+			if (strlen(substr($string, $stringCursor)) > 0)
+			{
+				$untranslatable = array('string' => substr($string, $stringCursor), 'translatable' => false);
+				array_push($this->translationUnits, $untranslatable);
+			}
 		}
 		else
 		{
 			// Send whole string to wrapper
-			array_push($this->translationUnits, $string);
+			array_push($this->translationUnits, array('string' => $string, 'translatable' => true));
 		}
 	}
 

@@ -66,28 +66,28 @@ while ($reader->name == 'trans-unit')
 
 	// Get source string
 	$sourceChildIndex = $xliffFilter->getChildByName($node, "source");
-	
-	if (!is_null($sourceChildIndex)) 
+
+	if (!is_null($sourceChildIndex))
 	{
 		// Retrieve the source string
 		$sourceStr = $node->childNodes->item($sourceChildIndex)->textContent;
-		
+
 		// Apply XLIFF format to the source string
 		$sourceSegments = $xliffFilter->format($sourceStr);
-		
+
 		// Checks translation status
 		$approvedTranslation = false;
-		
+
 		// Get target only if approved (skips fuzzy strings in output)
 		$targetChildIndex = $xliffFilter->getChildByName($node, "target");
-		if (!is_null($targetChildIndex)) 
+		if (!is_null($targetChildIndex))
 		{
 			// Retrieve target string
 			$targetStr = $node->childNodes->item($targetChildIndex)->textContent;
-		
+
 			// Apply XLIFF format to target string
 			$targetSegments = $xliffFilter->format($targetStr);
-			
+
 			if($reader->getAttribute('approved') === 'yes')
 			{
 				$approvedTranslation = true;
@@ -95,9 +95,9 @@ while ($reader->name == 'trans-unit')
 
 		}
 		$destStrState = 'translated';
-		
+
 		$idSuffix = 1;
-		
+
 		// Update total strings and words counters
 		$totalStrings++;
 		$effectiveWordCount = 0;
@@ -106,35 +106,36 @@ while ($reader->name == 'trans-unit')
 		foreach ($sourceSegments as $id => $unit)
 		{
 			$transUnitId++;
-			$sourceStr = $unit;
+			$sourceStr = $unit['string'];
 			$segmentWordCount = str_word_count($sourceStr);
-			
-			if (($id % 2 !== 0 && count($sourceSegments) > 1)
-				|| ($id === 0 && count($sourceSegments) === 1))
+
+			/*if (($id % 2 !== 0 && count($sourceSegments) > 1)
+				|| ($id === 0 && count($sourceSegments) === 1))*/
+			if ($unit['translatable'])
 			{
 				// We're in a translatable unit
 				$effectiveWordCount += $segmentWordCount;
-			
+
 				// Add a translatable unit in the ouput file
 				$writer->startElement('trans-unit');
-				// Add specific LionBridge attributes 
+				// Add specific LionBridge attributes
 				$writer->writeAttribute('resname', 'CKLS' . $reader->getAttribute('id') . '_' . count($sourceSegments) . '_' . $idSuffix);
 				$writer->writeAttribute("xml:space", $reader->getAttribute('xml:space'));
 				$writer->writeAttribute('id', $transUnitId);
-			
+
 
 				// If the translation is not approved, the target string is the same as the source string
 				$targetStr = $sourceStr;
 				$destStrState = 'needs-translation';
 				$translatable = 'yes';
-				
+
 				if ($approvedTranslation)
 				{
 					// Pick the same segment amongst the target ones
 					if (isset($targetSegments[$id]))
 					{
-						$targetStr = $targetSegments[$id];	
-						$destStrState = 'translated';	
+						$targetStr = $targetSegments[$id]['string'];
+						$destStrState = 'translated';
 					}
 					else
 					{
@@ -147,10 +148,10 @@ while ($reader->name == 'trans-unit')
 					// Update untranslated words counter
 					$notTranslatedWordCount += $segmentWordCount;
 				}
-						
+
 				// Update total word count
 				$totalWordCount += $effectiveWordCount;
-				
+
 				$writer->writeAttribute('translate', $translatable);
 				// Write the content of the source tag
 				// Add source to output
@@ -158,7 +159,7 @@ while ($reader->name == 'trans-unit')
 				$writer->writeAttribute('xml:lang', $argv[2]);
 				$writer->writeRaw($sourceStr);
 				$writer->endElement();
-				
+
 				// Add target to output
 				if ($translatable === 'yes')
 				{
@@ -168,10 +169,10 @@ while ($reader->name == 'trans-unit')
 					$writer->writeRaw($targetStr);
 					$writer->endElement();
 				}
-				
+
 				// Copy developer's notes into <note> tags
 				$noteChildIndex = XliffFilter::getChildByName($node, "note");
-				if (!is_null($noteChildIndex)) 
+				if (!is_null($noteChildIndex))
 				{
 					$noteNodeContent = $node->childNodes->item($noteChildIndex)->textContent;
 					$writer->startElement('note');
@@ -186,12 +187,12 @@ while ($reader->name == 'trans-unit')
 				// Add a non-translatable unit in the ouput file
 				// $writer->startComment();
 				$writer->startElement('trans-unit');
-				// Add specific LionBridge attributes 
+				// Add specific LionBridge attributes
 				$writer->writeAttribute('resname', 'CKLS' . $reader->getAttribute('id') . '_' . count($sourceSegments) . '_' . $idSuffix);
 				$writer->writeAttribute("xml:space", $reader->getAttribute('xml:space'));
 				$writer->writeAttribute('id', $transUnitId);
 				$writer->writeAttribute('translate', 'no');
-				
+
 				// Add source to output
 				$writer->startElement('source');
 				$writer->writeAttribute('xml:lang', $argv[2]);
@@ -201,13 +202,13 @@ while ($reader->name == 'trans-unit')
 				$writer->endElement();
 				// $writer->endComment();
 			}
-			
+
 			$idSuffix++;
 
 		}
-		
+
 		// Keep on reading!
-		$reader->next('trans-unit');		
+		$reader->next('trans-unit');
 	}
 }
 // Writes LionBridge Xliff file
