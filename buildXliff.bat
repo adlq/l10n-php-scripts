@@ -36,6 +36,6 @@ REM Summon the PHP script that converts the resulting xliff file into LionBridge
 php xliff2lb.php !output!.raw.xlf en-GB !output!.xlf !locale! csv >> buildXliffOutput.csv
 
 REM Delete temporary files
-del !output!.raw.xlf !output!.uniq.po
+del !output!.raw.xlf !output!.uniq.po !output!.clean.po
 
 endlocal

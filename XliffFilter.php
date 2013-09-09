@@ -8,7 +8,8 @@ class XliffFilter
 	private $translationUnits;
 
 	// Main regex, matches html tags and placeholders
-	private $regex = "/<[^>]+>|{\w+}|%\w+%?/";
+	// Unicode regex detecting alphabetical characters and underscores
+	private $regex = "/<[^>]+>|{[\p{L}\p{Pc}]+}|%[\p{L}\p{Pc}]+%?/u";
 	private	$layoutTagsRegex = "/<\/?(html|head|meta|title|body|p|table|thead|tbody|tr|th|td|ul|ol|li|blockquote)[^>]*>/";
 
 	public function __construct()
@@ -109,7 +110,6 @@ class XliffFilter
 				$regex = "/([^% ]+)/";
 				break;
 		}
-
 		// Apply the matching
 		if (preg_match($regex, $element, $matches) && isset($matches[1]))
 			return $matches[1];
@@ -328,6 +328,7 @@ class XliffFilter
 	 * Format a string by inserting necessary Xliff tags
 	 * @param string $string The string to format
 	 * @return string The formatted string
+	 * @throws RuntimeException
 	 */
 	public function processString($string)
 	{
@@ -379,6 +380,11 @@ class XliffFilter
 						+ strlen($matches[0])
 						+ $pos;
 
+			}
+			else
+			{
+				// Unrecognized tag name
+				throw new RuntimeException("Unexpected tag name $matches[0]");
 			}
 		}
 		return $string;
