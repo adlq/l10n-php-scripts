@@ -9,7 +9,7 @@ class XliffFilter
 
 	// Main regex, matches html tags and placeholders
 	// Unicode regex detecting alphabetical characters and underscores
-	private $regex = "/<[^>]+>|{[\p{L}\p{Pc}]+}|%[\p{L}\p{Pc}]+%?/u";
+	private $regex = "/<[^>]+>|{[\p{L}\p{N}\p{Pc}]+}|%[\p{L}\p{N}\p{Pc}]+%?/u";
 	private	$layoutTagsRegex = "/<\/?(html|head|meta|title|body|p|table|thead|tbody|tr|th|td|ul|ol|li|blockquote)[^>]*>/";
 
 	public function __construct()
