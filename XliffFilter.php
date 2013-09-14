@@ -275,12 +275,10 @@ class XliffFilter
 					$temp = trim(preg_replace($this->getRegex(), '', $split));
 					if ($temp !== '')
 					{
-						//echo "Calling strpos at offset $offset\n";
 						$pos = strpos($string, $split, $offset);
 						$length = strlen($split);
 						array_push($marks, array($pos => $length));
 						$offset = $pos + $length;
-						//echo "Split that has translatable text: $split @ $pos spanning $length from total length " . strlen($string) . ". Moving offset to $offset\n";
 					}
 				}
 			}
@@ -291,20 +289,18 @@ class XliffFilter
 			{
 				$pos = key($mark);
 				$length = $mark[$pos];
-//        echo "Pos $pos and length $length\n";
 
 				// Everything from the current position in the string to the next
 				// key is untranslatable
-        if ($pos !== $stringCursor)
-        {
-          $untranslatable = array('string' => substr($string, $stringCursor, $pos - $stringCursor), 'translatable' => false);
-          array_push($this->translationUnits, $untranslatable);
-        }
+            if ($pos !== $stringCursor)
+            {
+              $untranslatable = array('string' => substr($string, $stringCursor, $pos - $stringCursor), 'translatable' => false);
+              array_push($this->translationUnits, $untranslatable);
+            }
 
 				// Retrieve the translatable unit
 				$translatable = array('string' => substr($string, $pos, $length), 'translatable' => true);
 
-        //echo "Pushing '$untranslatable' and '$translatable'\n";
 				array_push($this->translationUnits, $translatable);
 
 				$stringCursor = $pos + $length;
@@ -526,7 +522,6 @@ class XliffFilter
 	 */
 	public function printChildList($node)
 	{
-		echo "Child list for node " . $node->nodeName . ": \n";
 		for ($i = 0; $i < $node->childNodes->length; $i++)
 		{
 			print "\tChild no. $i : " . $node->childNodes->item($i)->nodeName . "\n";

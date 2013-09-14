@@ -34,44 +34,45 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
 		</tr>
 	</tbody>
 </table>', array(
-  '<table>
+  array('string' => '<table>
 	<thead>
 		<tr>
-			<th>',
-  'Lorem <b>ipsum</b>',
-  '</th>
+			<th>', 'translatable' => false),
+  array('string' => 'Lorem <b>ipsum</b>', 'translatable' => true),
+  array('string' => '</th>
 		</tr>
 	</thead>
 	<tbody>
 		<tr>
-			<td>',
-  'Lorem ipsum',
-  '</td>
+			<td>', 'translatable' => false),
+  array('string' => 'Lorem ipsum', 'translatable' => true),
+  array('string' => '</td>
 		</tr>
 	</tbody>
-</table>'), array('html')),
+</table>', 'translatable' => false))),
 			array('<ul>
    <li>Lorem ipsum dolor sit <a href="#">amet</a>, consectetuer adipiscing elit.</li>
    <li>Aliquam tincidunt mauris eu risus.</li>
    <li>Vestibulum auctor dapibus neque.</li>
-</ul>', array('<ul>
-   <li>',
-  'Lorem ipsum dolor sit <a href="#">amet</a>, consectetuer adipiscing elit.',
-  '</li>
-   <li>',
-  'Aliquam tincidunt mauris eu risus.',
-  '</li>
-   <li>',
-  'Vestibulum auctor dapibus neque.',
-  '</li>
-</ul>')),
+</ul>', array(
+  array('string' => '<ul>
+   <li>', 'translatable' => false),
+  array('string' => 'Lorem ipsum dolor sit <a href="#">amet</a>, consectetuer adipiscing elit.', 'translatable' => true),
+  array('string' => '</li>
+   <li>', 'translatable' => false),
+  array('string' => 'Aliquam tincidunt mauris eu risus.', 'translatable' => true),
+  array('string' => '</li>
+   <li>', 'translatable' => false),
+  array('string' => 'Vestibulum auctor dapibus neque.', 'translatable' => true),
+  array('string' => '</li>
+</ul>', 'translatable' => false))),
 			array('<h1>HTML Ipsum Presents</h1>
 <p><strong>Pellentesque habitant morbi tristique</strong> senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. <em>Aenean ultricies mi vitae est.</em> Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, <code>commodo vitae</code>, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. <a href="#">Donec non enim</a> in turpis pulvinar facilisis. Ut felis.</p>',
-      array('<h1>HTML Ipsum Presents</h1>
-',
-        '<p>',
-        '<strong>Pellentesque habitant morbi tristique</strong> senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. <em>Aenean ultricies mi vitae est.</em> Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, <code>commodo vitae</code>, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. <a href="#">Donec non enim</a> in turpis pulvinar facilisis. Ut felis.',
-        '</p>')),
+      array(array('string' => '<h1>HTML Ipsum Presents</h1>
+', 'translatable' => true),
+        array('string' => '<p>', 'translatable' => false),
+        array('string' => '<strong>Pellentesque habitant morbi tristique</strong> senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. <em>Aenean ultricies mi vitae est.</em> Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, <code>commodo vitae</code>, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. <a href="#">Donec non enim</a> in turpis pulvinar facilisis. Ut felis.', 'translatable' => true),
+        array('string' => '</p>', 'translatable' => false))),
       array('<html>
  <head>
   <title>Pellentesque habitant morbi tristique</title>
@@ -80,19 +81,20 @@ class XliffFilterTest extends PHPUnit_Framework_TestCase
 <body>
 <p>Pellentesque habitant morbi tristique.</p>
 </body>
-</html>', array('<html>
+</html>', array(
+  array('string' => '<html>
  <head>
-  <title>',
-  'Pellentesque habitant morbi tristique',
-  '</title>
+  <title>', 'translatable' => false),
+  array('string' => 'Pellentesque habitant morbi tristique', 'translatable' => true),
+  array('string' => '</title>
   <meta name="Pellentesque" content="Aenean ultricies mi vitae est">
  </head>
 <body>
-<p>',
-  'Pellentesque habitant morbi tristique.',
-  '</p>
+<p>', 'translatable' => false),
+  array('string' => 'Pellentesque habitant morbi tristique.', 'translatable' => true),
+  array('string' => '</p>
 </body>
-</html>')));
+</html>', 'translatable' => false))));
 	}
 	
 	/**
