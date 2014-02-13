@@ -32,6 +32,8 @@ if not x%fileName:.xlf=%==x%fileName% (
 		REM Convert the resulting xlf file to a PO file
 		xliff2po !locale!_temp.xlf !locale!.po
 		
+		msguniq !locale!.po --no-location --no-wrap -o !locale!.po
+		
 		msgmerge !locale!.po !locale!.po --no-location --no-wrap --sort-output -o !output!
 		
 		REM Delete temporary files
