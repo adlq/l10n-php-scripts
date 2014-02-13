@@ -108,11 +108,21 @@ while ($reader->name === 'trans-unit')
 		
 		if ($reader->getAttribute('translate') === 'no')
 		{
-			// We're in a segment that must not be translated
-			// We will have to append it to both source and target buffers
-			$isCommonSegment = true;
-			
-			echo "This is an untranslatable segment\n";
+            if (!is_null($targetNodeIndex))
+			{
+				// Validated translation
+				$targetNode = $node->childNodes->item($targetNodeIndex);
+				$targetContent = $targetNode->textContent;
+
+                if ($targetContent === $sourceContent)
+                {
+                    // We're in a segment that must not be translated
+                    // We will have to append it to both source and target buffers
+                    $isCommonSegment = true;
+                    
+                    echo "This is an untranslatable segment\n";
+                }
+            }
 		}
 		else 
 		{
