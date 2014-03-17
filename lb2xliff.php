@@ -274,7 +274,7 @@ file_put_contents($outputFileName, $output);
 
 // Close and clean
 $reader->close();
-exec("del $tempFile");
+unlink($tempFile);
 
 // Prepare output
 $nbOfNotTranslatedStr = count($notTranslatedStrings);

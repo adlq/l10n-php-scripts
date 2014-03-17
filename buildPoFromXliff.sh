@@ -69,9 +69,7 @@ php lb2xliff.php $xlf_inputfile en-GB $locale.temp.xlf $locale csv >> buildPoOut
 # Convert the resulting xlf file to a PO file
 xliff2po $locale.temp.xlf $locale.po
 
-msguniq $locale.po --no-location --no-wrap -o $locale.po
-
-msgmerge $locale.po $locale.po --no-location --no-wrap --sort-output -o $po_outputfile
+msguniq $locale.po --no-location --no-wrap --sort-output -o $po_outputfile
 
 #  Delete temporary files
 rm $locale.temp.xlf $locale.po
