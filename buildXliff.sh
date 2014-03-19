@@ -3,7 +3,7 @@
 # PO to XLIFF conversion tool
 
 # Supported locales in CKLS
-locales=(de-DE es-ES it-IT ja-JP nl-NL pl-PL pt-BR ru-RU zh-CHS)
+locales=(de-DE es-ES fi_FI fr_FR it-IT ja-JP nb_NO nl-NL pl-PL pt-BR ru-RU sv_SE zh-CHS)
 
 if [ $# -ne 3 ]
 then
